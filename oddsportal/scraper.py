@@ -11,16 +11,14 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import re
 import datetime
-import os
-
-# import from the same dir
-###from . import sqlite_db as sq
-
-# in each module
 import logging
+import os
+import re
+
+
 logger = logging.getLogger(__name__)
+
 
 # https://code.activestate.com/recipes/52308/
 class CellData(object):
@@ -34,69 +32,27 @@ class CellData(object):
 
 class Scraper(object):
     """
-    A class to scrape/parse match results from oddsportal.com
+    A class to scrape/parse match results from oddsportal.com website.
+    Makes use of Selenium and BeautifulSoup modules.
     """
     
-    def __init__(self, headless=True, browser='firefox'):
+    def __init__(self):
         """
-        Constructor providing the executable path value to None
-        for now only firefox
-        for Firefox headless gecko driver required
+        Constructor
         """
-        self.base_url = 'http://www.oddsportal.com'
-        
-        if browser == 'firefox':
-            if headless:
-                self.option = webdriver.firefox.options.Options()
-                self.option.add_argument('-headless')
-                self.driver = webdriver.Firefox(firefox_options=self.option)
-                logger.info('browser opened in headless mode')
-            else:
-                self.driver = webdriver.Firefox()
-                logger.info('browser opened')
+        self.base_url = 'https://www.oddsportal.com'
+        self.options = webdriver.ChromeOptions()
+        self.options.add_argument('headless')
+        self.driver = webdriver.Chrome('./chromedriver/chromedriver',chrome_options=self.options)
+        logger.info('Chrome browser opened in headless mode')
         
         # exception when no driver created
- 
-    # Print iterations progress
-    def _print_progress_bar (self, iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█'):
-        """
-        Call in a loop to create terminal progress bar
-        @params:
-            iteration   - Required  : current iteration (Int)
-            total       - Required  : total iterations (Int)
-            prefix      - Optional  : prefix string (Str)
-            suffix      - Optional  : suffix string (Str)
-            decimals    - Optional  : positive number of decimals in percent complete (Int)
-            length      - Optional  : character length of bar (Int)
-            fill        - Optional  : bar fill character (Str)
-            
-        # Sample Usage
-        from time import sleep
-        # A List of Items
-        items = list(range(0, 57))
-        l = len(items)
         
-        # Initial call to print 0% progress
-        printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-        for i, item in enumerate(items):
-            # Do stuff...
-            sleep(0.1)
-            # Update Progress Bar
-            printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+    def go_to_link(self,link):
         """
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-        filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = '\r')
-        # Print New Line on Complete
-        if iteration == total: 
-            print()
-        
-    def _go_to_link(self,link):
-        '''
         returns True if no error
         False whe page not found
-        '''
+        """
         # load the page fully
         self.driver.get(link)
         try:
@@ -108,52 +64,43 @@ class Scraper(object):
         
         return True
         
-    def _get_html_source(self):
+    def get_html_source(self):
         return self.driver.page_source
     
     def close_browser(self):
         self.driver.quit()
         logger.info('browser closed')
-
-    def set_time_zone(self, timezone="Budapest"):
-        self._go_to_link(self.base_url)
-        WebDriverWait(self.driver, self.WAIT_TIME).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#user-header-timezone-expander"))).click()
-        WebDriverWait(self.driver, self.WAIT_TIME).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, timezone))).click()
-        logger.info('timezone set to: %s', timezone)
     
-    def _convert_date(self, date):
-        '''        
+    def convert_date(self, date):
+        """        
         input:
             Today, 26 Sep
             Yesterday, 25 Sep
             19 Sep 2018
             
         return: None if the dat like Today otherwise the date in a from yyyy-mm-dd
-        '''
+        """
         now = datetime.datetime.now()
         m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
         n = ['0'+str(i) if i<10 else str(i) for i in range(1,13)]
         months = dict(zip(m,n))
         l = date.split()
-        
         if 'Today,' in l:
             date = None
         elif 'Yesterday,' in l:
             date = '{}-{}-{}'.format(now.year, months[l[-1]], l[1])
         else:
             date = '{}-{}-{}'.format(l[-1], months[l[1]], l[0])
-        
         # ?
         #date=datetime.datetime.strptime(current_date_str, "%d %b %Y")
         #return datetime.datetime.strftime(date,"%Y-%m-%d")
         return date
-        
     
-    def _cells_data_3way(self, table):
-        '''
+    def cells_data_3way(self, table):
+        """
         returns the match's details in a list of struct [CellData1, CellData2, ...]
         for 3 way sports like soccer, handball ...
-        '''
+        """
         cells = []
         
         isEmpty = table.find("td", id="emptyMsg")
@@ -207,48 +154,30 @@ class Scraper(object):
 
             return cells
 
-    def get_data(self, links, db_name, table_name):
-        '''
-        export the results into sqlite3 db
-        
-        input: 
-            links: a list of links
-            db_name: sqlite3 database name. must be in /data
-            table_name: if table not exists in d it will be created
-        
-        e.g.: get_data(['http://www.oddsportal.com/handball/ukraine/superleague/results/'], 'bets.db3', 'handball')
-        '''
-        
-        # connect to db            
-        db_file = db_name
-        ###con = sq.create_conection(os.path.join(os.getcwd(),'data',db_file))
-        logger.info('db version: %s',sq.test_connection(con))
-        logger.info('connected to database')
-        # check if table exists            
-        ###sq.chk_tabe(con, table_name)
+    def get_data(self, links):
+        """
+        get_data
+        """
         total_rows = len(links)
         k = 0
-        # Initial call to print 0% progress
-        self._print_progress_bar(k, total_rows, prefix = 'Populate DB:', suffix = 'Complete', length = 50)
         # get all the data
         for link in links:
-            self._go_to_link(link)
-            html_source = self._get_html_source()
+            self.go_to_link(link)
+            html_source = self.get_html_source()
             soup = BeautifulSoup(html_source, "html.parser")
             # get the table which contains the results 
             table = soup.find("table", id="tournamentTable")
-            data = self._cells_data_3way(table)
+            data = self.cells_data_3way(table)
             if data:
                 for d in data:
                     # save to database
                     teams = d.teams.split(" - ")
-                    ###sq.insert_oddsportal(con, table_name, [d.url, d.date, d.hour, teams[0], teams[1], d.score, d.odds_home, d.odds_draw, d.odds_away, d.result])
-                ###con.commit()
-            # progress bar
-            k += 1
-            self._print_progress_bar(k, total_rows, prefix = 'Populate DB:', suffix = 'Complete', length = 50)
-        # close db connection
-        ###if con:
-            ###con.close()
-            ###logger.info('database is closed')
+                    print([d.url, d.date, d.hour, teams[0], teams[1], d.score, d.odds_home, d.odds_draw, d.odds_away, d.result])
+
+
+if __name__ == '__main__':
+    s = Scraper()
+    s.go_to_link('https://www.oddsportal.com')
+    print(s.get_html_source())
+    s.close_browser()
         
