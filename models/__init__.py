@@ -6,6 +6,10 @@ OddsPortal crawling/scraping data models
 """
 
 
+import json
+import os
+
+
 class Game(object):
     def __init__(self):
         self.retrieval_url = str()
@@ -46,6 +50,10 @@ class League(object):
     def __setitem__(self,key,value):
         self.seasons[key] = value
 
+class BasicJsonEncoder(json.JSONEncoder):
+        def default(self, o):
+            return o.__dict__ 
+
 class Collection(object):
     def __init__(self,name):
         self.name = name
@@ -65,6 +73,7 @@ class Collection(object):
 class DataRepository(object):
     def __init__(self):
         self.collections = dict()
+        self.output_dir = str()
 
     def start_new_data_collection(self,target_sport_obj):
         if target_sport_obj['collection_name'] not in self.collections:
@@ -72,7 +81,7 @@ class DataRepository(object):
             new_collection = Collection(target_sport_obj['collection_name'])
             new_collection.sport = target_sport_obj['sport']
             new_collection.region = target_sport_obj['region']
-            new_collection.output_dir = os.path.normpath('output' + os.sep + target_sport_obj['output_dir'])
+            new_collection.output_dir = target_sport_obj['output_dir']
             new_collection.parse_type = target_sport_obj['parse_type']
             # *Some* fields from "target sport objects" map to League fields
             new_league = League(target_sport_obj['league'])
@@ -83,16 +92,20 @@ class DataRepository(object):
         else:
             raise RuntimeError('Target sports JSON file must have unique collection names.')
 
+    def set_output_directory(self,path):
+        self.output_dir = path
+
     def save_all_collections_to_json(self):
         for _, collection in self.collections.items():
-            if os.path.isdir(collection.output_dir):
-                filelist = [ f for f in os.listdir(collection.output_dir) ]
+            qualified_output_dir = os.path.normpath(self.output_dir + os.sep + collection.output_dir)
+            if os.path.isdir(qualified_output_dir):
+                filelist = [ f for f in os.listdir(qualified_output_dir) ]
                 for f in filelist:
-                    os.remove(os.path.join(collection.output_dir, f))
+                    os.remove(os.path.join(qualified_output_dir, f))
             else:
-                os.makedirs(collection.output_dir)
-            with open(os.path.join(collection.output_dir, collection.name + '.json')) as outfile:
-                json.dump(collection, outfile)
+                os.makedirs(qualified_output_dir)
+            with open(os.path.join(qualified_output_dir, collection.name + '.json'), 'w') as outfile:
+                json.dump(collection, outfile, cls=BasicJsonEncoder)
 
     def __getitem__(self,key):
         return self.collections[key]

@@ -40,15 +40,18 @@ def main():
     target_sports = get_target_sports_from_file()
     logger.info('Loaded configuration for ' + str(len(target_sports)) + ' sports\' results to scrape')
     for target_sport_obj in target_sports:
+        logger.info('Starting data collection "' + target_sport_obj['collection_name'] + '"')
         data.start_new_data_collection(target_sport_obj)
-    #c = crawler.Crawler(headless=False)
-    #d = c.leagues('handball')
-    #print(d)
-    #l = c.league_links(d)
-    #print(l)
-    #s = scraper.Scraper(headless=False)
-    #for k,links in d.items():
-    #    s.get_data(l, args.scrape[1], args.scrape[2])
+        #c = crawler.Crawler(headless=False)
+        #d = c.leagues('handball')
+        #print(d)
+        #l = c.league_links(d)
+        #print(l)
+        #s = scraper.Scraper(headless=False)
+        #for k,links in d.items():
+        #    s.get_data(l, args.scrape[1], args.scrape[2])
+    data.set_output_directory(OUTPUT_DIRECTORY_PATH)
+    data.save_all_collections_to_json()
     logger.info('Ending scrape of OddsPortal.com')
 
 #######################################################################################################################

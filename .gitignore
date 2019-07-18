@@ -4,4 +4,5 @@ profile_default/
 ipython_config.py
 .python-version
 *.json
+*.log
 venv/
