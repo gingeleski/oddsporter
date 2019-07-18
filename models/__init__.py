@@ -32,9 +32,13 @@ class Season(object):
     def __init__(self,name):
         self.name = name
         self.games = list()
+        self.urls = list()
 
     def add_game(self,game):
         self.games.append(game)
+
+    def add_url(self,url):
+        self.urls.append(url)
 
 
 class League(object):
@@ -42,7 +46,6 @@ class League(object):
         self.name = name
         self.seasons = dict()
         self.root_url = str()
-        self.links = list()
 
     def __getitem__(self,key):
         return self.seasons[key]
@@ -50,9 +53,11 @@ class League(object):
     def __setitem__(self,key,value):
         self.seasons[key] = value
 
+
 class BasicJsonEncoder(json.JSONEncoder):
         def default(self, o):
             return o.__dict__ 
+
 
 class Collection(object):
     def __init__(self,name):
