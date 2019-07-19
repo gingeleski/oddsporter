@@ -5,12 +5,13 @@ Logic for the overall Odds Portal scraping utility focused on scraping
 
 """
 
-from bs4 import BeautifulSoup
+
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+
 import datetime
 import logging
 import os

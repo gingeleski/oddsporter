@@ -6,8 +6,7 @@ Logic for the overall Odds Portal scraping utility focused on crawling
 """
 
 
-from bs4 import BeautifulSoup
-from models import Season
+from .models import Season
 from pyquery import PyQuery as pyquery
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
@@ -98,7 +97,7 @@ class Crawler(object):
         html_source = self.get_html_source()
         html_querying = pyquery(html_source)
         # Just need to locate the final pagination tag
-        pagination_links = html_query.find('div#pagination > a')
+        pagination_links = html_querying.find('div#pagination > a')
         # It's possible, however, there is no pagination...
         if len(pagination_links) <= 1:
             return
