@@ -13,11 +13,8 @@ import os
 class Game(object):
     def __init__(self):
         self.retrieval_url = str()
-        self.retrieval_date = str()
-        self.retrieval_time = str()
-        self.game_date = str()
-        self.game_time = str()
-        self.game_note = str()
+        self.retrieval_datetime = str()
+        self.game_datetime = str()
         self.info_string = str()
         self.num_possible_outcomes = str()
         self.team_home = str()

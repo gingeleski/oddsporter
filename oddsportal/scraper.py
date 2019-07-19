@@ -6,6 +6,9 @@ Logic for the overall Odds Portal scraping utility focused on scraping
 """
 
 
+from .models import Game
+from .models import Season
+from pyquery import PyQuery as pyquery
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
@@ -71,6 +74,24 @@ class Scraper(object):
     def close_browser(self):
         self.driver.quit()
         logger.info('browser closed')
+
+    def populate_games_into_season(self, season):
+        """
+        Params:
+            season (Season) with urls but not games populated, to modify
+        """
+        for url in season.urls:
+            self.go_to_link(url)
+            html_source = self.get_html_source()
+            html_querying = pyquery(html_source)
+            tournament_table = html_querying.find('div#tournamentTable > table#tournamentTable')
+            table_rows = tournament_table.find('tbody > tr')
+            for table_row in table_rows:
+                time_cell = table_row.find('td.table-time')
+                if time_cell == None or len(time_cell) < 1:
+                    # This row of the table does not contain game/match data
+                    continue
+                # TODO
     
     def convert_date(self, date):
         """        
