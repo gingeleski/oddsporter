@@ -118,12 +118,3 @@ class Crawler(object):
             this_url = last_page_url.replace(str(last_page_number),str(i))
             season.urls.append(this_url)
         season.urls.append(last_page_url)
-
-
-if __name__ == '__main__':
-    c = Crawler()
-    seasons_test = c.get_seasons_for_league('https://www.oddsportal.com/hockey/usa/nhl/results/')
-    for season in seasons_test:
-        print(season.name)
-        print(season.urls)
-    c.close_browser()
