@@ -195,11 +195,4 @@ class Scraper(object):
                     # save to database
                     teams = d.teams.split(" - ")
                     print([d.url, d.date, d.hour, teams[0], teams[1], d.score, d.odds_home, d.odds_draw, d.odds_away, d.result])
-
-
-if __name__ == '__main__':
-    s = Scraper()
-    s.go_to_link('https://www.oddsportal.com')
-    print(s.get_html_source())
-    s.close_browser()
         
