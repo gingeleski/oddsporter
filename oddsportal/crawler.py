@@ -104,7 +104,8 @@ class Crawler(object):
         last_page_number = -1
         last_page_url = None
         for link in reversed(pagination_links):
-            if '»|' in link.text:
+            span = link.find('span')
+            if span != None and span.text != None and '»|' in span.text:
                 # This is the last link because it has these two characters in it...
                 last_page_number = int(link.attrib['x-page'])
                 last_page_url = first_url_in_season + link.attrib['href']
