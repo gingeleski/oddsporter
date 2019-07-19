@@ -5,9 +5,7 @@ OddsPortal scraping utility
 
 """
 
-from models import DataRepository
-#from oddsportal import crawler
-#from oddsportal import scraper
+from oddsportal import *
 
 import json
 import logging
@@ -39,17 +37,18 @@ def main():
     logger.info('Starting scrape of OddsPortal.com')
     target_sports = get_target_sports_from_file()
     logger.info('Loaded configuration for ' + str(len(target_sports)) + ' sports\' results to scrape')
+    crawler = Crawler()
+    logger.info('Crawler has been initialized')
     for target_sport_obj in target_sports:
-        logger.info('Starting data collection "' + target_sport_obj['collection_name'] + '"')
+        c_name = target_sport_obj['collection_name']
+        logger.info('Starting data collection "' + c_name + '"')
         data.start_new_data_collection(target_sport_obj)
-        #c = crawler.Crawler(headless=False)
-        #d = c.leagues('handball')
-        #print(d)
-        #l = c.league_links(d)
-        #print(l)
-        #s = scraper.Scraper(headless=False)
-        #for k,links in d.items():
-        #    s.get_data(l, args.scrape[1], args.scrape[2])
+        main_league_results_url = target_sport_obj['root_url']
+        working_seasons = crawler.get_seasons_for_league(main_league_results_url)
+        for i,_ in enumerate(working_seasons):
+            crawler.fill_in_season_pagination_links(working_seasons[i])
+        data[c_name].league.seasons = working_seasons
+        # TODO request all links in each season with scraped data
     data.set_output_directory(OUTPUT_DIRECTORY_PATH)
     data.save_all_collections_to_json()
     logger.info('Ending scrape of OddsPortal.com')

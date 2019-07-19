@@ -1,12 +1,14 @@
 """
 crawler.py
 
-Logic for the overall OddsPortal scraping utility focused on crawling
+Logic for the overall Odds Portal scraping utility focused on crawling
 
 """
 
 
 from bs4 import BeautifulSoup
+from models import Season
+from pyquery import PyQuery as pyquery
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
@@ -36,19 +38,21 @@ class Crawler(object):
         # exception when no driver created
 
     def go_to_link(self,link):
-        '''
+        """
         returns True if no error
         False whe page not found
-        '''
+        """
         # load the page fully
-        self.driver.get(link)
+        try:
+            self.driver.get(link)
+        except Exception:
+            pass
         try:
             # if no Login button -> page not found
             self.driver.find_element_by_css_selector('.button-dark')
         except NoSuchElementException:
-            logger.warning('problem with link: %s', link)
+            logger.warning('Problem with link, could not find login button @ %s', link)
             return False
-        
         return True
         
     def get_html_source(self):
@@ -56,69 +60,70 @@ class Crawler(object):
     
     def close_browser(self):
         self.driver.quit()
-        logger.info('browser closed')
-    
-    def get_league_seasons(self, league_link):
-        '''
-        league_link: eg.: http://www.oddsportal.com/handball/austria/hla/results/
-        
-        Returns a list of links.
-        '''
-        p_links = []
-        
-        if not self.go_to_link(league_link):
-            return []
-        
+        logger.info('Browser closed')
+
+    def get_seasons_for_league(self, main_league_results_url):
+        """
+        Params:
+            (str) main_league_results_url e.g. https://www.oddsportal.com/hockey/usa/nhl/results/
+
+        Returns:
+            (list) urls to each season for given league
+        """
+        seasons = []
+        logger.info('Getting all seasons for league via %s', main_league_results_url)
+        if not self.go_to_link(main_league_results_url):
+            logger.error('League results URL loaded unsuccessfully %s', main_league_results_url)
+            # Going to send back empty list so this is not processed further
+            return seasons
         html_source = self.get_html_source()
-        soup = BeautifulSoup(html_source, "html.parser")
-        
-        seasons = soup.find("div", class_="main-menu2 main-menu-gray").find_all("span")
-        
-        season_links = [season.find("a")['href'] for season in seasons]
-        
-        logger.info('season links in league: %s', season_links)
-        
-        for link in season_links:
-            self.go_to_link(self.base_url + link)
-            p_links.append(self.pagination(link))
-        
-        # flatten the results
-        return [item for sublist in p_links for item in sublist]
+        html_querying = pyquery(html_source)
+        season_links = html_querying.find('div.main-menu2.main-menu-gray > ul.main-filter > li > span > strong > a')
+        logger.info('Extracted links to %d seasons', len(season_links))
+        for season_link in season_links:
+            this_season = Season(season_link.text)
+            # Start the Season's list of URLs with just the root one
+            this_season_url = self.base_url + season_link.attrib['href']
+            this_season.urls.append(this_season_url)
+            seasons.append(this_season)
+        return seasons
     
-    def get_season_pagination_links(self, season_link):
-        '''
-        Returns the page's pagination of a single season on the Odds Portal website.
-        
-        eg.: season_link = '/handball/austria/hla-2017-2018/results/' 
-        
-        Returns a list of links.
-        '''
-        pagination_links = []
-        
-        self.go_to_link(self.base_url + season_link)
+    def fill_in_season_pagination_links(self, season):
+        """
+        Params:
+            (Season) object with just one entry in its urls field, to be modified
+        """
+        first_url_in_season = season.urls[0]
+        self.go_to_link(first_url_in_season)
         html_source = self.get_html_source()
-        soup = BeautifulSoup(html_source, "html.parser")
-        pagination_tags = soup.find("div", id="pagination")
-        
-        # no pagination for this link
-        if pagination_tags is None:
-            pagination_links.append(self.base_url + season_link)
-        else:
-            pagination_links.append(self.base_url + season_link)
-            paginations = [page['href'] for page in pagination_tags.find_all("a")]
-            
-            for page in paginations:
-                if page.find('page') != -1:
-                    if (self.base_url + season_link + page) not in pagination_links:
-                        pagination_links.append(self.base_url + season_link + page)
-                    
-        logger.info('pagination links: %s', pagination_links)
-        
-        return pagination_links
+        html_querying = pyquery(html_source)
+        # Just need to locate the final pagination tag
+        pagination_links = html_query.find('div#pagination > a')
+        # It's possible, however, there is no pagination...
+        if len(pagination_links) <= 1:
+            return
+        last_page_number = -1
+        last_page_url = None
+        for link in reversed(pagination_links):
+            if '»|' in link.text:
+                # This is the last link because it has these two characters in it...
+                last_page_number = int(link.attrib['x-page'])
+                last_page_url = first_url_in_season + link.attrib['href']
+                break
+        # If the last page number was set, the page format must've changed - RuntimeError
+        if last_page_number == -1:
+            logger.error('Could not locate final page URL from %s', first_url_in_season)
+            raise RuntimeError('Could not locate final page URL from %s', first_url_in_season)
+        for i in range(2,last_page_number):
+            this_url = last_page_url.replace(str(last_page_number),str(i))
+            season.urls.append(this_url)
+        season.urls.append(last_page_url)
 
 
 if __name__ == '__main__':
     c = Crawler()
-    c.go_to_link('https://www.oddsportal.com')
-    print(c.get_html_source())
+    seasons_test = c.get_seasons_for_league('https://www.oddsportal.com/hockey/usa/nhl/results/')
+    for season in seasons_test:
+        print(season.name)
+        print(season.urls)
     c.close_browser()

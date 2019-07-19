@@ -1,7 +1,7 @@
 """
 scraper.py
 
-Logic for the overall OddsPortal scraping utility focused on scraping
+Logic for the overall Odds Portal scraping utility focused on scraping
 
 """
 

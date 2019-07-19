@@ -1,7 +1,7 @@
 """
-models/__init__.py
+models.py
 
-OddsPortal crawling/scraping data models
+Odds Portal data model for storing stuff that's scraped
 
 """
 
