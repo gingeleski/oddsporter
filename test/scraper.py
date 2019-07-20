@@ -201,10 +201,15 @@ if __name__ == '__main__':
     html_querying = pyquery(html_source)
     tournament_table = html_querying.find('div#tournamentTable > table#tournamentTable')
     table_rows = tournament_table.find('tbody > tr')
-    for table_row in table_rows:
-        time_cell = table_row.find('td.table-time')
-        if time_cell == None or len(time_cell) < 1:
+    num_table_rows = len(table_rows)
+    for i in range(0,num_table_rows):
+        # Finding the table cell with game time and assessing if its blank tells us if this is a game data row
+        time_cell = tournament_table.find('tbody > tr').eq(i).find('td.table-time')
+        if 0 == len(str(time_cell).strip()):
             # This row of the table does not contain game/match data
             continue
-        # TODO
+        print(str(i))
+        print(time_cell)
+    # TODO
+    exit()
         
