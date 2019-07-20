@@ -54,11 +54,7 @@ def main():
             crawler.fill_in_season_pagination_links(working_seasons[i])
             logger.info('Populating all game data for links of season "%s"', working_seasons[i].name)
             scraper.populate_games_into_season(working_seasons[i], target_sport_obj['outcomes'])
-            # DEBUG TESTING START
-            if i == 1:
-                break # DEBUG TESTING END
         data[c_name].league.seasons = working_seasons
-        break # DEBUG TESTING AGAIN - THIS LINE ONLY
     data.set_output_directory(OUTPUT_DIRECTORY_PATH)
     data.save_all_collections_to_json()
     logger.info('Ending scrape of OddsPortal.com')
