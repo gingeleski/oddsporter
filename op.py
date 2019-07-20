@@ -39,16 +39,24 @@ def main():
     logger.info('Loaded configuration for ' + str(len(target_sports)) + ' sports\' results to scrape')
     crawler = Crawler()
     logger.info('Crawler has been initialized')
+    scraper = Scraper()
+    logger.info('Scraper has been initialized')
     for target_sport_obj in target_sports:
         c_name = target_sport_obj['collection_name']
-        logger.info('Starting data collection "' + c_name + '"')
+        logger.info('Starting data collection "%s"', c_name)
         data.start_new_data_collection(target_sport_obj)
         main_league_results_url = target_sport_obj['root_url']
         working_seasons = crawler.get_seasons_for_league(main_league_results_url)
         for i,_ in enumerate(working_seasons):
+            logger.info('Getting all links for season "%s"', working_seasons[i].name)
             crawler.fill_in_season_pagination_links(working_seasons[i])
+            logger.info('Populating all game data for links of season "%s"', working_seasons[i].name)
+            scraper.populate_games_into_season(working_seasons[i], target_sport_obj['outcomes'])
+            # DEBUG TESTING START
+            if i == 1:
+                break # DEBUG TESTING END
         data[c_name].league.seasons = working_seasons
-        # TODO request all links in each season with scraped data
+        break # DEBUG TESTING AGAIN - THIS LINE ONLY
     data.set_output_directory(OUTPUT_DIRECTORY_PATH)
     data.save_all_collections_to_json()
     logger.info('Ending scrape of OddsPortal.com')

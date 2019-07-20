@@ -100,6 +100,7 @@ class Crawler(object):
         no_data_div = html_querying.find('div.message-info > ul > li > div.cms')
         if no_data_div != None and no_data_div.text() == 'No data available':
             # Yes, found "No data available"
+            logger.warning('Found "No data available", skipping %s', first_url_in_season)
             return
         # Just need to locate the final pagination tag
         pagination_links = html_querying.find('div#pagination > a')

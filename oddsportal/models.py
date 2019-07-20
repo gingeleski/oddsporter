@@ -15,7 +15,7 @@ class Game(object):
         self.retrieval_url = str()
         self.retrieval_datetime = str()
         self.game_datetime = str()
-        self.info_string = str()
+        self.game_url = str()
         self.num_possible_outcomes = str()
         self.team_home = str()
         self.team_away = str()
@@ -23,6 +23,8 @@ class Game(object):
         self.odds_away = str()
         self.odds_draw = str()
         self.outcome = str()
+        self.score_home = str()
+        self.score_away = str()
 
 
 class Season(object):
