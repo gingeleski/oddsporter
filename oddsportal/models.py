@@ -64,7 +64,7 @@ class Collection(object):
         self.sport = str()
         self.region = str()
         self.output_dir = str()
-        self.parse_type = str()
+        self.outcomes = 0
         self.league = None
 
     def __getitem__(self,key):
@@ -86,7 +86,7 @@ class DataRepository(object):
             new_collection.sport = target_sport_obj['sport']
             new_collection.region = target_sport_obj['region']
             new_collection.output_dir = target_sport_obj['output_dir']
-            new_collection.parse_type = target_sport_obj['parse_type']
+            new_collection.outcomes = target_sport_obj['outcomes']
             # *Some* fields from "target sport objects" map to League fields
             new_league = League(target_sport_obj['league'])
             new_league.root_url = target_sport_obj['root_url']

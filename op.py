@@ -5,7 +5,9 @@ OddsPortal scraping utility
 
 """
 
-from oddsportal import Crawler, DataRepository
+from oddsportal import Crawler
+from oddsportal import DataRepository
+from oddsportal import Scraper
 
 import json
 import logging
