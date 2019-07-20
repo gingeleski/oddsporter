@@ -96,6 +96,11 @@ class Crawler(object):
         self.go_to_link(first_url_in_season)
         html_source = self.get_html_source()
         html_querying = pyquery(html_source)
+        # Check if the page says "No data available"
+        no_data_div = html_querying.find('div.message-info > ul > li > div.cms')
+        if no_data_div != None and no_data_div.text() == 'No data available':
+            # Yes, found "No data available"
+            return
         # Just need to locate the final pagination tag
         pagination_links = html_querying.find('div#pagination > a')
         # It's possible, however, there is no pagination...

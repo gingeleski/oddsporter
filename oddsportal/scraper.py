@@ -84,6 +84,11 @@ class Scraper(object):
             self.go_to_link(url)
             html_source = self.get_html_source()
             html_querying = pyquery(html_source)
+            # Check if the page says "No data available"
+            no_data_div = html_querying.find('div.message-info > ul > li > div.cms')
+            if no_data_div != None and no_data_div.text() == 'No data available':
+                # Yes, found "No data available"
+                return
             tournament_table = html_querying.find('div#tournamentTable > table#tournamentTable')
             table_rows = tournament_table.find('tbody > tr')
             for table_row in table_rows:

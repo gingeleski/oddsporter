@@ -184,9 +184,9 @@ class Scraper(object):
         for link in links:
             self.go_to_link(link)
             html_source = self.get_html_source()
-            soup = BeautifulSoup(html_source, "html.parser")
+            soup = BeautifulSoup(html_source, 'html.parser')
             # get the table which contains the results 
-            table = soup.find("table", id="tournamentTable")
+            table = soup.find('table', id='tournamentTable')
             data = self.cells_data_3way(table)
             if data:
                 for d in data:
