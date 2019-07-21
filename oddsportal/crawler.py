@@ -12,6 +12,7 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
 import logging
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -24,14 +25,17 @@ class Crawler(object):
     """
     WAIT_TIME = 3  # max waiting time for a page to load
     
-    def __init__(self):
+    def __init__(self, wait_on_page_load=3):
         """
         Constructor
         """
         self.base_url = 'https://www.oddsportal.com'
+        self.wait_on_page_load = wait_on_page_load
+        if wait_on_page_load == None:
+            self.wait_on_page_load = 3
         self.options = webdriver.ChromeOptions()
         self.options.add_argument('headless')
-        self.driver = webdriver.Chrome('./chromedriver/chromedriver',chrome_options=self.options)
+        self.driver = webdriver.Chrome('./chromedriver/chromedriver', chrome_options=self.options)
         logger.info('Chrome browser opened in headless mode')
         
         # exception when no driver created
@@ -41,17 +45,15 @@ class Crawler(object):
         returns True if no error
         False whe page not found
         """
-        # load the page fully
+        self.driver.get(link)
         try:
-            self.driver.get(link)
-        except Exception:
-            pass
-        try:
-            # if no Login button -> page not found
+            # If no Login button, page not found
             self.driver.find_element_by_css_selector('.button-dark')
         except NoSuchElementException:
-            logger.warning('Problem with link, could not find login button @ %s', link)
+            logger.warning('Problem with link, could not find Login button - %s', link)
             return False
+        # Workaround for ajax page loading issue
+        time.sleep(self.wait_on_page_load)
         return True
         
     def get_html_source(self):
@@ -121,6 +123,6 @@ class Crawler(object):
             logger.error('Could not locate final page URL from %s', first_url_in_season)
             raise RuntimeError('Could not locate final page URL from %s', first_url_in_season)
         for i in range(2,last_page_number):
-            this_url = last_page_url.replace(str(last_page_number),str(i))
+            this_url = last_page_url.replace('page/' + str(last_page_number), 'page/' + str(i))
             season.urls.append(this_url)
         season.urls.append(last_page_url)

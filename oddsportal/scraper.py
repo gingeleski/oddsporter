@@ -41,14 +41,17 @@ class Scraper(object):
     Makes use of Selenium and BeautifulSoup modules.
     """
     
-    def __init__(self):
+    def __init__(self, wait_on_page_load=3):
         """
         Constructor
         """
         self.base_url = 'https://www.oddsportal.com'
+        self.wait_on_page_load = wait_on_page_load
+        if wait_on_page_load == None:
+            self.wait_on_page_load = 3
         self.options = webdriver.ChromeOptions()
         self.options.add_argument('headless')
-        self.driver = webdriver.Chrome('./chromedriver/chromedriver',chrome_options=self.options)
+        self.driver = webdriver.Chrome('./chromedriver/chromedriver', chrome_options=self.options)
         logger.info('Chrome browser opened in headless mode')
         
         # exception when no driver created
@@ -58,15 +61,15 @@ class Scraper(object):
         returns True if no error
         False whe page not found
         """
-        # load the page fully
         self.driver.get(link)
         try:
             # if no Login button -> page not found
             self.driver.find_element_by_css_selector('.button-dark')
         except NoSuchElementException:
-            logger.warning('problem with link: %s', link)
+            logger.warning('Problem with link, could not find Login button - %s', link)
             return False
-        
+        # Workaround for ajax page loading issue
+        time.sleep(self.wait_on_page_load)
         return True
         
     def get_html_source(self):
@@ -176,4 +179,10 @@ class Scraper(object):
                 except:
                     logger.warning('Skipping row, encountered exception - data not as expected...')
                     continue
+
+
+if __name__ == '__main__':
+    s = Scraper()
+    s.go_to_link('https://www.oddsportal.com/basketball/usa/nba/results/#/page/27/')
+    s.close_browser()
         

@@ -9,6 +9,7 @@ from oddsportal import Crawler
 from oddsportal import DataRepository
 from oddsportal import Scraper
 
+import argparse
 import json
 import logging
 import time
@@ -36,12 +37,19 @@ def get_target_sports_from_file():
 
 def main():
     global logger, data
+    # Instantiate the argument parser
+    parser = argparse.ArgumentParser(description='oddsporter v1.0')
+    # Declaring all our acceptable arguments below...
+    parser.add_argument('--number-of-processes', type=int, nargs='?', help='Max number parallel scraping processes (default 10)')
+    parser.add_argument('--wait-time-on-page-load', type=int, nargs='?', help='How many seconds to wait on page load (default 3)')
+    # Then grab them from the command line input
+    args = parser.parse_args()
     logger.info('Starting scrape of OddsPortal.com')
     target_sports = get_target_sports_from_file()
     logger.info('Loaded configuration for ' + str(len(target_sports)) + ' sports\' results to scrape')
-    crawler = Crawler()
+    crawler = Crawler(wait_on_page_load=args.wait_time_on_page_load)
     logger.info('Crawler has been initialized')
-    scraper = Scraper()
+    scraper = Scraper(wait_on_page_load=args.wait_time_on_page_load)
     logger.info('Scraper has been initialized')
     for target_sport_obj in target_sports:
         c_name = target_sport_obj['collection_name']
