@@ -10,6 +10,7 @@ from .models import Season
 from pyquery import PyQuery as pyquery
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import WebDriverException
 
 import logging
 import time
@@ -60,7 +61,11 @@ class Crawler(object):
         return self.driver.page_source
     
     def close_browser(self):
-        self.driver.quit()
+        time.sleep(5)
+        try:
+            self.driver.quit()
+        except WebDriverException:
+            pass
         logger.info('Browser closed')
 
     def get_seasons_for_league(self, main_league_results_url):

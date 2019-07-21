@@ -11,6 +11,7 @@ from .models import Season
 from pyquery import PyQuery as pyquery
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -76,8 +77,12 @@ class Scraper(object):
         return self.driver.page_source
     
     def close_browser(self):
-        self.driver.quit()
-        logger.info('browser closed')
+        time.sleep(5)
+        try:
+            self.driver.quit()
+        except WebDriverException:
+            pass
+        logger.info('Browser closed')
 
     def populate_games_into_season(self, season, number_of_outcomes=2):
         """
