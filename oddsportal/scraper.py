@@ -138,8 +138,15 @@ class Scraper(object):
                     # Perform crude sanitization against various things appended to scores, like " OT"
                     overall_score_string = overall_score_string.split()[0]
                     # Home team/participant is always listed first in Odds Portal's scores
-                    game.score_home = int(overall_score_string.split(':')[0])
-                    game.score_away = int(overall_score_string.split(':')[1])
+                    if ':' in overall_score_string:
+                        game.score_home = int(overall_score_string.split(':')[0])
+                        game.score_away = int(overall_score_string.split(':')[1])
+                    elif '-' in overall_score_string:
+                        game.score_home = int(overall_score_string.split('-')[0])
+                        game.score_away = int(overall_score_string.split('-')[1])
+                    else:
+                        logger.warning('Could not split score string - delimiter unknown')
+                        raise RuntimeError('Could not split score string - delimiter unknown')
                     # Based on the score we can infer the outcome, as follows...
                     if game.score_home > game.score_away:
                         game.outcome = 'HOME'
