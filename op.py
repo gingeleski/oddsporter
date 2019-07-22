@@ -78,12 +78,33 @@ def main():
     else:
         logger.info('Did not receive argument --wait-time-on-page-load so will use default 3 seconds')
     # END parsing command line arguments and logging what's happening
-    logger.info('Starting scrape of OddsPortal.com')
+    logger.info('About to load "target sports"')
     target_sports = get_target_sports_from_file()
+    if len(target_sports) < 1:
+        raise RuntimeError('config/sports.json file appears empty - cannot proceed')
+    logger.info('Now prompting user for which sport/league to scrape')
+    print('Please input the corresponding number of which sport/league to scrape')
+    print('\t[0] ' + 'all sports *buggy*')
+    for i, target_sport_obj in enumerate(target_sports):
+        print('\t[' + str(i+1) + '] ' + target_sport_obj['collection_name'])
+    sport_to_do = input('Selection: ')
+    if False == sport_to_do.isdigit():
+        raise RuntimeError('Invalid selection, please re-rerun and try again')
+    else:
+        sport_to_do = int(sport_to_do)
+    logger.info('Starting scrape of OddsPortal.com')
     logger.info('Loaded configuration for ' + str(len(target_sports)) + ' sports\' results to scrape')
+    if int(sport_to_do) == 0:
+        logger.info('Will attempt to scrape all sports')
+    else:
+        logger.info('Only scraping one sport though')
     crawler = Crawler(wait_on_page_load=wait_on_page_load)
     logger.info('Crawler for season links has been initialized')
-    for target_sport_obj in target_sports:
+    ran_once = False
+    for i, target_sport_obj in enumerate(target_sports):
+        if (i + 1) != int(sport_to_do) and int(sport_to_do) != 0:
+            continue
+        ran_once = True
         c_name = target_sport_obj['collection_name']
         logger.info('Starting data collection "%s"', c_name)
         data.start_new_data_collection(target_sport_obj)
@@ -97,8 +118,12 @@ def main():
         # Use parallel processing to scrape games for each season of this league's history
         working_seasons_w_games = Parallel(n_jobs=max_parallel_cpus)(delayed(scrape_games_for_season)(this_season) for this_season in working_seasons)
         data[c_name].league.seasons = working_seasons_w_games
-    data.set_output_directory(OUTPUT_DIRECTORY_PATH)
-    data.save_all_collections_to_json()
+    if ran_once:
+        logger.info('Saving output now')
+        data.set_output_directory(OUTPUT_DIRECTORY_PATH)
+        data.save_all_collections_to_json()
+    else:
+        logger.warning('Did not run - invalid command line input for sport')
     logger.info('Ending scrape of OddsPortal.com')
 
 #######################################################################################################################
