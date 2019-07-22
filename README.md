@@ -3,7 +3,7 @@
 
 Comprehensive scraping utility for Odds Portal (oddsportal.com) results.
 
-*Note this has now been released and is maintained in [**gingeleski/odds-portal-scraper**](https://github.com/gingeleski/odds-portal-scraper).*
+*Note this has now been released and is maintained in [**gingeleski/odds-portal-scraper**](https://github.com/gingeleski/odds-portal-scraper/tree/master/full_scraper).*
 
 ## Compatibility
 
