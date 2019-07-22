@@ -1,9 +1,0 @@
-The scraper must be able to scrape NRL, NBA, NHL, AFL, and NFL odds from OddsPortal.
-
-The scraper must be able to scrape all current and past games and odds.
-
-The scraper should output data as JSON.
-
-The scraper should leverage the Scrapy framework.
-
-The scraper should utilize parallel threads for optimization.
