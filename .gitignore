@@ -6,3 +6,4 @@ ipython_config.py
 *.json
 *.log
 venv/
+*.exe
