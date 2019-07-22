@@ -87,6 +87,8 @@ The specific subdirectories where things go are dictated in `config/sports.json`
         - The source URL fields of Game objects to be incorrect
         - Games towards the end of the season to disappear
             - Seemingly related to the first point as the scraper thinks it's farther along than it really is
+    - The default 3 second wait time should be sufficient to avoid this
+        - However this is ultimately dependent on factors like your hardware, network latency, etc.
 - *Add further bugs/quirks under Issues*
 
 ## Disclaimer
