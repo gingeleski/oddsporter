@@ -64,9 +64,9 @@ class Crawler(object):
         time.sleep(5)
         try:
             self.driver.quit()
+            logger.info('Browser closed')
         except WebDriverException:
-            pass
-        logger.info('Browser closed')
+            logger.warning('WebDriverException on closing browser - maybe closed?')
 
     def get_seasons_for_league(self, main_league_results_url):
         """

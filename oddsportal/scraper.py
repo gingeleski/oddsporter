@@ -26,16 +26,6 @@ import time
 logger = logging.getLogger(__name__)
 
 
-# https://code.activestate.com/recipes/52308/
-class CellData(object):
-    """
-    strucutre for cell data
-    """
-    def __init__(self, **kwds):
-        #dict.__init__(self,kwds)
-        self.__dict__.update(kwds)
-
-
 class Scraper(object):
     """
     A class to scrape/parse match results from oddsportal.com website.
@@ -80,11 +70,11 @@ class Scraper(object):
         time.sleep(5)
         try:
             self.driver.quit()
+            logger.info('Browser closed')
         except WebDriverException:
-            pass
-        logger.info('Browser closed')
+            logger.warning('WebDriverException on closing browser - maybe closed?')
 
-    def populate_games_into_season(self, season, number_of_outcomes=2):
+    def populate_games_into_season(self, season):
         """
         Params:
             season (Season) with urls but not games populated, to modify
@@ -130,7 +120,8 @@ class Scraper(object):
                     # Set some of the other Game fields that are easy to fill in
                     game.retrieval_datetime = retrieval_time_for_reference
                     game.retrieval_url = url
-                    game.num_possible_outcomes = number_of_outcomes
+                    game.num_possible_outcomes = season.possible_outcomes
+                    number_of_outcomes = season.possible_outcomes
                     # Now get the table cell - the link within it, actually - with participants
                     participants_link = tournament_table.find('tbody > tr').eq(i).find('td.table-participant > a')
                     participants = participants_link.text().split(' - ')
@@ -188,8 +179,8 @@ class Scraper(object):
                     if number_of_outcomes == 2:
                         game.odds_draw = None
                     season.add_game(game)
-                except:
-                    logger.warning('Skipping row, encountered exception - data not as expected...')
+                except Exception as e:
+                    logger.warning('Skipping row, encountered exception - data format not as expected')
                     continue
 
 
